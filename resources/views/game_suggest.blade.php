@@ -51,15 +51,11 @@
   You like these games, but you haven't played them recently:
 </p>
 <p>
-    <div class="col-md-4">
-     @include('partials.game_suggest_panel')
-    </div>
-    <div class="col-md-4">
-     @include('partials.game_suggest_panel')
-    </div>
-    <div class="col-md-4">
-     @include('partials.game_suggest_panel')
-    </div>
+    @foreach ($new_games as $app)
+      <div class="col-md-4">
+       @include('partials.game_suggest_panel', array('app' => $app))
+      </div>
+    @endforeach
 </p>
 
 <p class="lead">

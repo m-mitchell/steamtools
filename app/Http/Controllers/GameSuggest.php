@@ -47,22 +47,28 @@ class GameSuggest extends Controller
         $recent_games = json_decode($result->getBody(), true);
 
 
-        $suggestions_new = $this->get_new_games($library_games);
+        // Suggest top-rated unplayed games
+        $suggestions_new = $this->get_new_games($library_games, 3);
+        $new_games = [];
+        foreach($suggestions_new as $suggestion){
+            $new_games[] = $this->get_app_from_id($suggestion['appid']);
+        }
 
-        //var_dump($library_games);
-        //var_dump($recent_games);
-
-        // "200"
-        //echo $result->getHeader('content-type');
-        // 'application/json; charset=utf8'
-        // {"type":"User"...'
-
-        //return view('user.profile', ['user' => User::findOrFail($id)]);
+        return view('game_suggest', ['new_games' => $new_games]);
     }
 
-    private function get_new_games($library_games){
+    private function get_app_from_id($appid){
+        //mtodo
+        return [
+            'id' => $appid
+        ];
+    }
+
+    private function get_new_games($library_games, $count){
         $all_games = $library_games['response']['games'];
         $new_games = array_filter($all_games, function($x){ return $x['playtime_forever']==0; });
-        var_dump($new_games);
+        shuffle($new_games);
+        //mtodo get top-rated
+        return array_slice($new_games, 0, $count);
     }
 }
