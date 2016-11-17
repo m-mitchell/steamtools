@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use DB;
 use App\User;
+use App\Application;
+use App\Tag;
 use App\Http\Controllers\Controller;
 use GuzzleHttp\Client;
 use Goutte\Client as GoutteClient;
@@ -47,7 +50,6 @@ class GameSuggest extends Controller
         }
         $recent_games = json_decode($result->getBody(), true);
 
-
         // Suggest top-rated unplayed games
         $suggestions_new = $this->get_new_games($library_games, 6);
         $new_games = [];
@@ -59,31 +61,36 @@ class GameSuggest extends Controller
     }
 
     private function get_app_from_id($appid){
-        //mtodo cache this
-        $data = $this->scrape_game_data($appid);
-        return [
-            'id'    => $appid,
-            'title' => $data['title'],
-            'desc'  => $data['desc'],
-            'img'   => $data['img']
-        ];
+        $app = Application::where('steam_appid', $appid)->get();
+        if(count($app)==0){
+            $app = $this->scrape_game_data($appid);
+        } else {
+            $app = $app[0];
+        }
+        
+        return $app;
     }
 
     private function scrape_game_data($appid){
+
+        //549470
         // Get page for this game
         $url = sprintf("http://store.steampowered.com/app/%s", $appid);
         $client = new GoutteClient();
         $crawler = $client->request("GET", $url, ["http_errors" => false]);
 
-        // Some games don't have store pages 
+        // Some games don't have store pages bc they're not actually standalone
+        // (E.g., Beta versions of other games)
         $homepage = $crawler->filter(".home_page_content");
         if(count($homepage) > 0){
-            //mtodo in future just ignore these instead of displaying them
-            return [
-                "title" => "?",
-                "img"   => "?",
-                "desc"  => "?"
+            // This is a child game
+            $data = [
+                "steam_appid"  => $appid,
+                "is_child"   => true
             ];
+            $game = Application::firstOrNew($data);
+            $game->save();
+            return $game;
         }
 
         //Bypass age verification form if necessary
@@ -98,20 +105,36 @@ class GameSuggest extends Controller
             $crawler = $client->submit($form);
         }
 
-        //print($appid." ");
+        // Grab fields from page
         $title = $crawler->filter('.apphub_AppName')->first()->text();
         $img  = $crawler->filter('.game_header_image_full')->first()->attr('src');
         $desc = $crawler->filter('.game_description_snippet')->first()->text();
 
-        //$users = DB::table('users')->get();
-        //return view('user.index', ['users' => $users]);
+        // Get review information
+        $review_div = $crawler->filter('.responsive_reviewdesc');
+        $review_score = 0;
+        $voters = 0;
+        if(count($review_div)>0){
+            $str = $review_div->last()->text();
+            preg_match_all("([0-9,]+)", $str, $matches);
+            $review_score = (int)$matches[0][0];
+            $voters = (int)str_replace(",", "", $matches[0][1]);
+        }
 
-        //print($title." ".$img." ".$desc."<br>");
-        return [
-            "title" => $title,
-            "img"   => $img,
-            "desc"  => $desc
+        // Store in db
+        $data = [
+            "steam_appid"  => $appid,
+            "title"        => $title,
+            "image_path"   => $img,
+            "description"  => $desc,
+            "review_score" => $review_score,
+            "voters"       => $voters
         ];
+
+
+        $game = Application::firstOrNew($data);
+        $game->save();
+        return $game;
     }
 
     private function get_new_games($library_games, $count){

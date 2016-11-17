@@ -17,8 +17,8 @@
 
 @section('page_script')
   $(function() {
-      $('.game_description').matchHeight();
       $('.game_panel').matchHeight();
+      $('.game_description').matchHeight();
   });
 @endsection
 
