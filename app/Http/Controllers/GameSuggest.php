@@ -72,8 +72,6 @@ class GameSuggest extends Controller
     }
 
     private function scrape_game_data($appid){
-
-        //549470
         // Get page for this game
         $url = sprintf("http://store.steampowered.com/app/%s", $appid);
         $client = new GoutteClient();
@@ -121,11 +119,15 @@ class GameSuggest extends Controller
             $voters = (int)str_replace(",", "", $matches[0][1]);
         }
 
+        // Save image
+        $target_filename = sprintf("/uploads/game_images/%s.jpg", $appid);
+        $client->getClient()->get($img, ["save_to"=>public_path().$target_filename]);
+
         // Store in db
         $data = [
             "steam_appid"  => $appid,
             "title"        => $title,
-            "image_path"   => $img,
+            "image_path"   => $target_filename,
             "description"  => $desc,
             "review_score" => $review_score,
             "voters"       => $voters
