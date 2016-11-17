@@ -1,0 +1,5 @@
+#bootstrap-overrides button:focus{
+  border-color: none;
+  box-shadow: none;
+  outline: 0 none;
+}
