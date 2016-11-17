@@ -22,3 +22,9 @@ Route::get('/suggest', function () {
 Route::get('/legal', function () {
     return view('legal');
 });
+
+Route::get('/test', function () {
+    return view('game_suggest');
+});
+
+Route::get('/test/{id}', 'GameSuggest');
