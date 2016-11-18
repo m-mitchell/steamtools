@@ -12,6 +12,6 @@ class Application extends Model
      * @var array
      */
     protected $fillable = [
-        'steam_appid', 'title', 'description', 'image_path', 'review_score', 'voters', 'is_child'
+        'steam_appid', 'title', 'description', 'image_path', 'review_score', 'voters', 'is_child', 'metascore'
     ];
 }
