@@ -26,6 +26,8 @@ class AddTimestamps extends Migration
      */
     public function down()
     {
-        //
+       Schema::table('application', function($table) {
+            $table->dropUnique('steam_appid');
+       });
     }
 }

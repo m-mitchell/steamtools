@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class UniqueAppid extends Migration
+class Metascore extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,9 @@ class UniqueAppid extends Migration
      */
     public function up()
     {
-       Schema::table('application', function($table) {
-            $table->unique('steam_appid');
-       });
+        Schema::table('applications', function (Blueprint $table) {
+            $table->double('metascore', 15, 13)->unsigned()->default(0);
+        });
     }
 
     /**
@@ -25,8 +25,8 @@ class UniqueAppid extends Migration
      */
     public function down()
     {
-       Schema::table('application', function($table) {
-            $table->dropUnique('steam_appid');
-       });
+        Schema::table('applications', function (Blueprint $table) {
+            $table->dropColumn('metascore');
+        });
     }
 }
