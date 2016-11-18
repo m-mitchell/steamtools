@@ -41,12 +41,14 @@
 
 <hr>
 
+<!--
 <p class="lead">
   People similar to you enjoyed these games:
 </p>
 <div class="row">
     Fave games here
 </div>
+-->
 
 <p class="lead">
   You like these games, but you haven't played them recently:

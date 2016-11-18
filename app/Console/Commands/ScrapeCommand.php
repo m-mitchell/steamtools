@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Traits\Scraper;
+use App\Application;
+use App\Setting;
 use \DateTime;
 use \DateInterval;
 
@@ -43,19 +45,25 @@ class ScrapeCommand extends Command
     public function handle()
     {
 
-        //mtodo pull this from db & store it
-        $stop_date = new DateTime();
-        $stop_date->sub(new DateInterval("P1D"));
+        $settings = Setting::fetch();
 
         // Get the app ids for recently-released games
-        $app_ids = $this->scrape_appids($stop_date);
-
-        // Get the app ids for stale games
-        //mtodo
-
-        foreach($app_ids as $id){
+        $stop_date = $settings['last_scraped_date']; 
+        $new_app_ids = $this->scrape_appids($stop_date);
+        foreach($new_app_ids as $id){
             $this->scrape_game_data($id);
         }
 
+        // Get the app ids for stale games
+        $stale_date = new DateTime();
+        $stale_date->sub(new DateInterval(sprintf("P%sD", $settings['scrape_stale_days'])));
+        $stale_apps = Application::where("updated_at", "<", $stale_date);
+        foreach($stale_apps as $app){
+            $this->scrape_game_data($app->id);
+        }
+
+        $timestamp = Setting::firstOrNew(["key"=>'last_scraped_date']);
+        $timestamp->value        = new DateTime();
+        $timestamp->save();
     }
 }

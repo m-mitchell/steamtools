@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use DB;
 use App\Application;
+use App\Setting;
 use App\Http\Controllers\Controller;
 use App\Traits\Scraper;
 use GuzzleHttp\Client;
@@ -19,18 +20,19 @@ class GameSuggest extends Controller
     use Scraper;
 
     private $baseApiUrl = "http://api.steampowered.com";
-    private $gameLimit = 3;
 
     public function __invoke($id){
         ini_set('xdebug.var_display_max_depth', -1);
         ini_set('xdebug.var_display_max_children ', -1);
+
+        $settings = Setting::fetch();
 
         //Try 76561197999112518 for a steam ID
         $client = new Client();
 
         // Get library for this person
         $url = "%s/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&format=json";
-        $url = sprintf($url, $this->baseApiUrl, $this->key, $id);
+        $url = sprintf($url, $this->baseApiUrl, $settings['steam_api_key'], $id);
         $result = $client->request("GET", $url, ["http_errors" => false]);
         if($result->getStatusCode()!=200){
             //mtodo better error handling here
@@ -41,7 +43,7 @@ class GameSuggest extends Controller
 
         // Get recent games for this person
         $url = "%s/IPlayerService/GetRecentlyPlayedGames/v0001/?key=%s&steamid=%s&format=json";
-        $url = sprintf($url, $this->baseApiUrl, $this->key, $id);
+        $url = sprintf($url, $this->baseApiUrl, $settings['steam_api_key'], $id);
         $result = $client->request("GET", $url, ["http_errors" => false]);
         if($result->getStatusCode()!=200){
             //mtodo better error handling here
@@ -51,13 +53,10 @@ class GameSuggest extends Controller
         $recent_games = json_decode($result->getBody(), true);
 
         // Suggest top-rated unplayed games
-        //$new_games = $this->get_new_games($library_games, $this->gameLimit);
-        $new_games = $this->get_fave_games($library_games, $recent_games, $this->gameLimit);
+        $new_games = $this->get_new_games($library_games, $settings['game_limit']);
 
         // Suggest favorite games
-        $fave_games = $this->get_fave_games($library_games, $recent_games, $this->gameLimit);
-
-
+        $fave_games = $this->get_fave_games($library_games, $recent_games, $settings['game_limit']);
 
         return view('game_suggest', [
             'new_games'  => $new_games,
@@ -91,16 +90,16 @@ class GameSuggest extends Controller
         }
 
         usort($new_games, function($a,$b){ 
-            return $b->metascore - $a->metascore; 
+            return $b->metascore > $a->metascore; 
         });
 
-        return $new_games;
+        return array_slice($new_games, 0, $count);
     }
 
     private function get_fave_games($library_games, $recent_games, $count){
         $suggestions = $library_games['response']['games'];
         usort($suggestions, function($a,$b){ 
-            return $b['playtime_forever'] - $a['playtime_forever']; 
+            return $b['playtime_forever'] > $a['playtime_forever']; 
         });
 
         $recent_app_ids = array_map(function($x){ 
