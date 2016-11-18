@@ -17,8 +17,8 @@
 
 @section('page_script')
   $(function() {
-      $('.game_panel').matchHeight();
       $('.game_description').matchHeight();
+      $('.game_panel').matchHeight();
   });
 @endsection
 
@@ -42,28 +42,40 @@
 <hr>
 
 <p class="lead">
-  You own these highly-rated games, but you haven't tried them yet:
+  People similar to you enjoyed these games:
 </p>
 <div class="row">
+    Fave games here
 </div>
 
 <p class="lead">
   You like these games, but you haven't played them recently:
 </p>
-<p>
+<div class="row">
+    @foreach ($fave_games as $app)
+      <div class="col-md-4">
+       @include('partials.game_suggest_panel', array('app' => $app))
+      </div>
+      @if ($loop->index%3==2 && !$loop->last)
+        </div>
+        <div class="row">
+      @endif
+    @endforeach
+</div>
+
+<p class="lead">
+  You own these highly-rated games, but you haven't tried them yet:
+</p>
+<div class="row">
     @foreach ($new_games as $app)
       <div class="col-md-4">
        @include('partials.game_suggest_panel', array('app' => $app))
       </div>
+      @if ($loop->index%3==2 && !$loop->last)
+        </div>
+        <div class="row">
+      @endif
     @endforeach
-</p>
-
-<p class="lead">
-  People similar to you enjoyed these games:
-</p>
-<p>
-    Recent games here
-</p>
-
+</div>
 
 @endsection
