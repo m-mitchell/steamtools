@@ -41,6 +41,11 @@ class SettingsSeeder extends Seeder {
             'key' => 'game_limit',
             'value' => '3'
         ]);
+
+        Setting::create([
+            'key' => 'admin_email',
+            'value' => 'mail@megmitchell.ca'
+        ]);
     }
 
 }

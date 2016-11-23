@@ -12,19 +12,11 @@
 */
 
 Route::get('/', function () {
-    return view('welcome');
-});
-
-Route::get('/suggest', function () {
-    return view('game_suggest');
+    return redirect()->action('GameSuggest');
 });
 
 Route::get('/legal', function () {
     return view('legal');
 });
 
-Route::get('/test', function () {
-    return view('game_suggest');
-});
-
-Route::get('/test/{id}', 'GameSuggest');
+Route::get('/suggest', 'GameSuggest');

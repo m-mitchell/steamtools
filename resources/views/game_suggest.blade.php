@@ -28,15 +28,17 @@
 </p>
 
 <p class="row">
+  {!! Form::open(array('action' => 'GameSuggest', 'method'=>'get')) !!}
   <div class="input-group">
-    <input type="text" class="form-control" placeholder="Enter Steam ID Here">
+    <input type="text" class="form-control" name="id" placeholder="Enter Steam ID Here">
     <span class="input-group-btn">
       <button class="btn btn-default" type="button">
         <span class="glyphicon glyphicon-align-left glyphicon-question-sign" aria-hidden="true"></span>
       </button>
-      <button class="btn btn-default" type="button">Search!</button>
+      <button class="btn btn-default" type="submit">Search!</button>
     </span>
   </div>
+  {!! Form::close() !!}
 </p>
 
 <hr>
@@ -49,35 +51,42 @@
     Fave games here
 </div>
 -->
+@if ($error==500)
+  <p>Couldn't find results for id "{{$id}}". Check the Steam ID and try again. If this problem persists, please contact the <a href="mailto:{{$settings['admin_email']}}">administrator</a>.</p>
 
-<p class="lead">
-  You like these games, but you haven't played them recently:
-</p>
-<div class="row">
-    @foreach ($fave_games as $app)
-      <div class="col-md-4">
-       @include('partials.game_suggest_panel', array('app' => $app))
-      </div>
-      @if ($loop->index%3==2 && !$loop->last)
-        </div>
-        <div class="row">
-      @endif
-    @endforeach
-</div>
+@elseif ($error!=null)
+  <p>An unexpected error occured when contacting Steam ({{$error}}). If this problem persists, please contact the <a href="mailto:{{$settings['admin_email']}}">administrator</a>.</p>
 
-<p class="lead">
-  You own these highly-rated games, but you haven't tried them yet:
-</p>
-<div class="row">
-    @foreach ($new_games as $app)
-      <div class="col-md-4">
-       @include('partials.game_suggest_panel', array('app' => $app))
-      </div>
-      @if ($loop->index%3==2 && !$loop->last)
-        </div>
-        <div class="row">
-      @endif
-    @endforeach
-</div>
+@elseif ($id!=null)
+    <p class="lead">
+      You like these games, but you haven't played them recently:
+    </p>
+    <div class="row">
+        @foreach ($fave_games as $app)
+          <div class="col-md-4">
+           @include('partials.game_suggest_panel', array('app' => $app))
+          </div>
+          @if ($loop->index%3==2 && !$loop->last)
+            </div>
+            <div class="row">
+          @endif
+        @endforeach
+    </div>
+
+    <p class="lead">
+      You own these highly-rated games, but you haven't tried them yet:
+    </p>
+    <div class="row">
+        @foreach ($new_games as $app)
+          <div class="col-md-4">
+           @include('partials.game_suggest_panel', array('app' => $app))
+          </div>
+          @if ($loop->index%3==2 && !$loop->last)
+            </div>
+            <div class="row">
+          @endif
+        @endforeach
+    </div>
+@endif
 
 @endsection

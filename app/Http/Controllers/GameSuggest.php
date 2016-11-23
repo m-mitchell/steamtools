@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use DB;
+use GuzzleHttp\Client;
+
 use App\Application;
 use App\Setting;
-use App\Http\Controllers\Controller;
 use App\Traits\Scraper;
-use GuzzleHttp\Client;
 
 class GameSuggest extends Controller
 {
@@ -21,47 +23,54 @@ class GameSuggest extends Controller
 
     private $baseApiUrl = "http://api.steampowered.com";
 
-    public function __invoke($id){
+    public function __invoke(Request $request){
         ini_set('xdebug.var_display_max_depth', -1);
         ini_set('xdebug.var_display_max_children ', -1);
 
         $settings = Setting::fetch();
 
-        //Try 76561197999112518 for a steam ID
-        $client = new Client();
+        $new_games = [];
+        $fave_games = [];
+        $id = $request->input('id');
+        $return_values = [
+            "settings"   => $settings,
+            "id"         => $id,
+            "error"      => null,
+            "fave_games" => [],
+            "new_games"  => []
+        ];
 
-        // Get library for this person
-        $url = "%s/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&format=json";
-        $url = sprintf($url, $this->baseApiUrl, $settings['steam_api_key'], $id);
-        $result = $client->request("GET", $url, ["http_errors" => false]);
-        if($result->getStatusCode()!=200){
-            //mtodo better error handling here
-            echo $result->getStatusCode();
-            return;
+        if($id!=null){
+
+            $client = new Client();
+            // Get library for this person
+            $url = "%s/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&format=json";
+            $url = sprintf($url, $this->baseApiUrl, $settings['steam_api_key'], $id);
+            $result = $client->request("GET", $url, ["http_errors" => false]);
+            if($result->getStatusCode()!=200){
+                $return_values["error"] = $result->getStatusCode();
+                return view('game_suggest', $return_values);
+            } 
+            $library_games = json_decode($result->getBody(), true);
+
+            // Get recent games for this person
+            $url = "%s/IPlayerService/GetRecentlyPlayedGames/v0001/?key=%s&steamid=%s&format=json";
+            $url = sprintf($url, $this->baseApiUrl, $settings['steam_api_key'], $id);
+            $result = $client->request("GET", $url, ["http_errors" => false]);
+            if($result->getStatusCode()!=200){
+                $return_values["error"] = $result->getStatusCode();
+                return view('game_suggest', $return_values);
+            }
+            $recent_games = json_decode($result->getBody(), true);
+
+            // Suggest top-rated unplayed games
+            $return_values["new_games"] = $this->get_new_games($library_games, $settings['game_limit']);
+
+            // Suggest favorite games
+            $return_values["fave_games"] = $this->get_fave_games($library_games, $recent_games, $settings['game_limit']);
         }
-        $library_games = json_decode($result->getBody(), true);
 
-        // Get recent games for this person
-        $url = "%s/IPlayerService/GetRecentlyPlayedGames/v0001/?key=%s&steamid=%s&format=json";
-        $url = sprintf($url, $this->baseApiUrl, $settings['steam_api_key'], $id);
-        $result = $client->request("GET", $url, ["http_errors" => false]);
-        if($result->getStatusCode()!=200){
-            //mtodo better error handling here
-            echo $result->getStatusCode();
-            return;
-        }
-        $recent_games = json_decode($result->getBody(), true);
-
-        // Suggest top-rated unplayed games
-        $new_games = $this->get_new_games($library_games, $settings['game_limit']);
-
-        // Suggest favorite games
-        $fave_games = $this->get_fave_games($library_games, $recent_games, $settings['game_limit']);
-
-        return view('game_suggest', [
-            'new_games'  => $new_games,
-            'fave_games' => $fave_games
-        ]);
+        return view('game_suggest', $return_values);
     }
 
     private function get_app_from_id($appid){
