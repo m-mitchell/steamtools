@@ -12,7 +12,6 @@ use \DateInterval;
 
 trait Scraper {
     private $baseUrl = "http://store.steampowered.com";
-    private $key = "SAMPLE";
 
     private function get_metascore($p, $n){
         //http://www.evanmiller.org/how-not-to-sort-by-average-rating.html
