@@ -14,8 +14,8 @@ class AddSettings extends Migration
     public function up()
     {
         Schema::create('settings', function (Blueprint $table) {
-            $table->string('key')->unique();
-            $table->string('value');
+            $table->string('key', 191)->unique();
+            $table->string('value', 191);
             $table->timestamps();
         });
     }

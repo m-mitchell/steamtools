@@ -16,9 +16,9 @@ class CreateInitialTables extends Migration
         Schema::create('application', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('steam_appid')->unsigned();
-            $table->string('title')->nullable();
+            $table->string('title', 191)->nullable();
             $table->text('description')->nullable();
-            $table->string('image_path')->nullable();
+            $table->string('image_path', 191)->nullable();
             $table->integer('review_score')->unsigned()->default(0);
             $table->integer('voters')->unsigned()->default(0);
             $table->boolean('is_child')->default(false);
@@ -27,7 +27,7 @@ class CreateInitialTables extends Migration
             
        Schema::create('tag', function($table) {
             $table->increments('id');
-            $table->string('name')->unique();
+            $table->string('name', 191)->unique();
        });
 
         Schema::create('application_tag', function (Blueprint $table) {
