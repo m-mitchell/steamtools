@@ -19,6 +19,11 @@
   $(function() {
       $('.game_description').matchHeight();
       $('.game_panel').matchHeight();
+
+      $('[data-toggle=tooltip]').tooltip({ trigger: "hover" });
+      $('#profile-button').click(function(){
+          window.open('https://steamcommunity.com/my/profile', '_blank');
+      });
   });
 @endsection
 
@@ -30,10 +35,12 @@
 <p class="row">
   {!! Form::open(array('action' => 'GameSuggest', 'method'=>'get')) !!}
   <div class="input-group">
-    <input type="text" class="form-control" name="id" placeholder="Enter Steam ID Here">
+    <input type="text" class="form-control" name="id" placeholder="16-digit Steam ID/vanity URL name" value="{{$id}}">
     <span class="input-group-btn">
-      <button class="btn btn-default" type="button">
-        <span class="glyphicon glyphicon-align-left glyphicon-question-sign" aria-hidden="true"></span>
+      <button id="profile-button" class="btn btn-default" type="button" data-toggle="tooltip" data-placement="bottom" title="Your 16-digit Steam ID or vanity URL name can be found in the URL of your Steam profile." >
+        <span class="glyphicon glyphicon-align-left glyphicon-question-sign" aria-hidden="true">
+
+        </span>
       </button>
       <button class="btn btn-default" type="submit">Search!</button>
     </span>
@@ -42,7 +49,6 @@
 </p>
 
 <hr>
-
 <!--
 <p class="lead">
   People similar to you enjoyed these games:
@@ -56,6 +62,9 @@
 
 @elseif ($error!=null)
   <p>An unexpected error occured when contacting Steam ({{$error}}). If this problem persists, please contact the <a href="mailto:{{$settings['admin_email']}}">administrator</a>.</p>
+
+@elseif ($app_error!=null)
+  <p>{{$app_error}}</p>
 
 @elseif ($id!=null)
     <p class="lead">

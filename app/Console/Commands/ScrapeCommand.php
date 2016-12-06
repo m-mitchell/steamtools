@@ -9,6 +9,7 @@ use App\Setting;
 use \DateTime;
 use \DateInterval;
 
+
 class ScrapeCommand extends Command
 {
     use Scraper;
@@ -48,9 +49,12 @@ class ScrapeCommand extends Command
         $settings = Setting::fetch();
 
         // Get the app ids for recently-released games
-        $stop_date = $settings['last_scraped_date']; 
+        $stop_date = DateTime::createFromFormat('Y-m-d', $settings['last_scraped_date']);
+        print $settings['last_scraped_date'];
+        print $stop_date->format("Y-m-d");
         $new_app_ids = $this->scrape_appids($stop_date);
         foreach($new_app_ids as $id){
+            print sprintf("Scraping %s ", $id);
             $this->scrape_game_data($id);
         }
 
@@ -59,11 +63,12 @@ class ScrapeCommand extends Command
         $stale_date->sub(new DateInterval(sprintf("P%sD", $settings['scrape_stale_days'])));
         $stale_apps = Application::where("updated_at", "<", $stale_date);
         foreach($stale_apps as $app){
+            print sprintf("Scraping %s\n", $app->id);
             $this->scrape_game_data($app->id);
         }
 
         $timestamp = Setting::firstOrNew(["key"=>'last_scraped_date']);
-        $timestamp->value        = new DateTime();
+        $timestamp->value = (new DateTime())->format("Y-m-d");
         $timestamp->save();
     }
 }

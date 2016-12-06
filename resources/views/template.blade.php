@@ -35,8 +35,8 @@
     <footer class="footer">
       <div class="container">
         <p class="text-muted">
-        <a href="http://megmitchell.ca">Meg Mitchell</a> &#9830; 
-        <a href="legal">CYA</a> &#9830; 
+        <a href="http://megmitchell.ca">Meg Mitchell</a> &loz; 
+        <a href="legal">Legal</a> &loz; 
         Powered by the <a href="https://steamcommunity.com/dev">Steam Web API</a></p>
       </div>
     </footer>
